@@ -68,8 +68,8 @@ pose-detector/
 
 | Modo | Descripción |
 |------|-------------|
-| 📷 **Cámara** | Detección en tiempo real con tu webcam |
-| 📁 **Imagen** | Sube una foto y analiza la pose |
+|  **Cámara** | Detección en tiempo real con tu webcam |
+|  **Imagen** | Sube una foto y analiza la pose |
 
 ---
 
