@@ -11,7 +11,7 @@ Aplicación web que detecta gestos de manos usando un modelo de **Teachable Mach
 
 | ✋ | Mano abierta |
 | ✊ | Puño |
-| 🙌 | Manos arriba |
+| ✌ | Paz |
 
 
 ---
