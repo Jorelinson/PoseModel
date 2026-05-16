@@ -7,8 +7,7 @@ Aplicación web que detecta gestos de manos usando un modelo de **Teachable Mach
 ## Poses reconocidas
 
 | Emoji | Pose |
-|-------|------|
-
+| :---: | --- |
 | ✋ | Mano abierta |
 | ✊ | Puño |
 | ✌ | Paz |
