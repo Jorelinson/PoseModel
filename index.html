@@ -1,970 +1,1036 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detector de Poses · Hand Signal AI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detector de Poses · Hand Signal AI</title>
 
-  <!-- TensorFlow.js + Teachable Machine Pose -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap"
+      rel="stylesheet">
 
-  <style>
-    :root {
-      --bg:       #0a0a0f;
-      --surface:  #12121a;
-      --panel:    #1a1a26;
-      --border:   #2a2a40;
-      --accent:   #7c3aed;
-      --glow:     #a855f7;
-      --green:    #22d3a5;
-      --yellow:   #fbbf24;
-      --red:      #f87171;
-      --text:     #e8e8f0;
-      --muted:    #6b6b8a;
-      --radius:   16px;
-    }
+    <!-- TensorFlow.js + Teachable Machine Pose -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+:root {
+    --brown-deep: #2e1a14;
+    --brown-dark: #4a2c1e;
+    --brown-mid: #7a4a2e;
+    --terracotta: #b5603a;
+    --terra-light: #c8795a;
+    --salmon: #d4927a;
+    --nude: #e0b8a0;
+    --cream: #f0e0d0;
+    --parchment: #f5ede0;
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    --gray-warm: #8a8a82;
+    --gray-mid: #a8a8a0;
+    --gray-light: #d0d0c8;
+    --off-white: #ece8e0;
 
-    /* Background grid */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
+    --slate-teal: #3a5a62;
 
-    /* Glow orbs */
-    body::after {
-      content: '';
-      position: fixed;
-      top: -200px; right: -200px;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
+    --taupe: #a09080;
+    --sand: #c8b888;
+    --sage: #787060;
 
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 24px 60px;
-    }
+    --bg: #f2ebe0;
+    --bg-alt: #ede4d6;
+    --surface: #faf5ee;
+    --panel: #ffffff;
+    --border: rgba(120, 90, 70, 0.18);
+    --border-warm: rgba(181, 96, 58, 0.3);
 
-    /* ── HEADER ── */
-    header {
-      padding: 40px 0 32px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 40px;
-    }
+    --accent: var(--terracotta);
+    --text: var(--brown-deep);
+    --text-mid: var(--brown-mid);
+    --text-muted: var(--taupe);
 
-    .logo-icon {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg, var(--accent), var(--glow));
-      border-radius: 12px;
-      display: grid; place-items: center;
-      font-size: 24px;
-      flex-shrink: 0;
-      box-shadow: 0 0 24px rgba(124,58,237,0.4);
-    }
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 20px rgba(74, 44, 30, 0.1);
+    --shadow-lg: 0 8px 40px rgba(74, 44, 30, 0.14);
+}
 
-    header h1 {
-      font-size: clamp(1.4rem, 4vw, 2.2rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-    }
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    header h1 span {
-      color: var(--glow);
-    }
+.grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
 
-    header p {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: 4px;
-      letter-spacing: 0.04em;
-    }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
-    /* ── LAYOUT ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 80% 10%, rgba(181, 96, 58, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 10% 90%, rgba(58, 90, 98, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(200, 184, 136, 0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px 72px;
+}
+
+header {
+    padding: 48px 0 36px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--border-warm);
+    margin-bottom: 44px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.logo-mark {
+    width: 52px;
+    height: 52px;
+    color: var(--terracotta);
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.logo-mark svg {
+    width: 100%;
+    height: 100%;
+}
+
+.header-text h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--brown-dark);
+}
+
+.header-text h1 em {
+    font-style: italic;
+    color: var(--terracotta);
+    font-weight: 600;
+}
+
+.subtitle {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 820px) {
     .grid {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
-      align-items: start;
+        grid-template-columns: 1fr;
     }
 
-    @media (max-width: 800px) {
-      .grid { grid-template-columns: 1fr; }
+    header {
+        flex-direction: column;
+        gap: 16px;
     }
+}
 
-    /* ── PANEL ── */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
+.col-main,
+.col-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-label {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--surface);
+}
+
+.label-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gray-mid);
+}
+
+.label-dot.active {
+    background: #6a9a70;
+}
+
+.label-dot.warn {
+    background: var(--terracotta);
+}
+
+.label-dot.dot-warm {
+    background: var(--salmon);
+}
+
+.camera-area {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: var(--bg-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: var(--terracotta);
+    border-style: solid;
+    opacity: 0.4;
+    z-index: 2;
+}
+
+.corner.tl {
+    top: 12px;
+    left: 12px;
+    border-width: 1.5px 0 0 1.5px;
+}
+
+.corner.tr {
+    top: 12px;
+    right: 12px;
+    border-width: 1.5px 1.5px 0 0;
+}
+
+.corner.bl {
+    bottom: 12px;
+    left: 12px;
+    border-width: 0 0 1.5px 1.5px;
+}
+
+.corner.br {
+    bottom: 12px;
+    right: 12px;
+    border-width: 0 1.5px 1.5px 0;
+}
+
+#canvas,
+#video {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#video {
+    transform: scaleX(-1);
+}
+
+#imagePreview {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#skeletonCanvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
+
+.idle-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
+}
+
+.idle-icon {
+    width: 64px;
+    height: 64px;
+    opacity: 0.35;
+}
+
+.idle-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.idle-state p {
+    font-size: 0.72rem;
+    line-height: 1.7;
+    max-width: 220px;
+}
+
+.upload-zone {
+    margin: 16px 20px;
+    border: 1.5px dashed var(--border-warm);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    background: var(--parchment);
+}
+
+.upload-zone:hover {
+    border-color: var(--terracotta);
+    background: rgba(181, 96, 58, 0.05);
+    color: var(--terracotta);
+}
+
+.upload-icon {
+    width: 20px;
+    height: 20px;
+}
+
+#fileInput {
+    display: none;
+}
+
+.controls {
+    padding: 16px 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+}
+
+.btn {
+    flex: 1;
+    min-width: 110px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid transparent;
+}
+
+.btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn-primary {
+    background: var(--terracotta);
+    color: var(--parchment);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-mid);
+    border-color: var(--border-warm);
+}
+
+.btn-ghost {
+    background: var(--bg-alt);
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.status-strip {
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+}
+
+.strip-pulse {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gray-mid);
+}
+
+.result-display {
+    padding: 50px 32px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.result-emoji {
+    font-size: 4.5rem;
+    line-height: 1;
+    width: 64px;
+    text-align: center;
+}
+
+.result-tag {
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.result-name {
+    font-family: 'Fraunces', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--terracotta);
+}
+
+.result-name.idle {
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+}
+
+.result-conf {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.conf-track {
+    height: 3px;
+    background: var(--bg-alt);
+    margin: 0 20px 20px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.conf-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--terracotta), var(--salmon));
+    transition: width 0.4s ease;
+}
+
+.prob-list {
+    padding: 24px 28px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.prob-row {
+    display: grid;
+    grid-template-columns: 1fr 140px 50px;
+    align-items: center;
+    gap: 10px;
+}
+
+.prob-name,
+.prob-pct {
+    font-size: 0.68rem;
+}
+
+.prob-bar-wrap {
+    height: 8px;
+    background: var(--bg-alt);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.prob-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--gray-light);
+    transition: width 0.35s ease;
+}
+
+.prob-row.top .prob-bar {
+    background: linear-gradient(90deg, var(--terracotta), var(--salmon));
+}
+
+#loadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.loading-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.loader-ring {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--border-warm);
+    border-top-color: var(--terracotta);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
+}
 
-    .panel-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+.loader-text {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
 
-    .panel-header .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-    }
+#toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    font-size: 0.68rem;
+    color: var(--text-mid);
+    z-index: 500;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.28s ease;
+}
 
-    .panel-header .dot.active { background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .panel-header .dot.warn   { background: var(--yellow); }
-    .panel-header .dot.idle   { background: var(--muted); }
-
-    /* ── CAMERA PANEL ── */
-    .camera-area {
-      position: relative;
-      aspect-ratio: 4/3;
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    #canvas {
-      display: none;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    #video {
-      display: none;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
-    }
-
-    #imagePreview {
-      display: none;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .idle-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      text-align: center;
-      padding: 20px;
-    }
-
-    .idle-icon {
-      font-size: 3.5rem;
-      line-height: 1;
-      filter: grayscale(0.4);
-    }
-
-    .idle-state p {
-      font-size: 0.9rem;
-      max-width: 240px;
-      line-height: 1.5;
-    }
-
-    /* Skeleton overlay */
-    #skeletonCanvas {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Corner decorators */
-    .camera-area::before, .camera-area::after {
-      content: '';
-      position: absolute;
-      width: 20px; height: 20px;
-      border-color: var(--accent);
-      border-style: solid;
-      z-index: 2;
-    }
-    .camera-area::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-    .camera-area::after  { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-
-    /* ── CONTROLS ── */
-    .controls {
-      padding: 16px 20px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--border);
-    }
-
-    .btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      transition: all 0.18s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--glow));
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 0 20px rgba(124,58,237,0.3);
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 28px rgba(124,58,237,0.5);
-    }
-
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      border-color: var(--accent);
-      color: var(--glow);
-    }
-
-    .btn-danger {
-      background: rgba(248,113,113,0.1);
-      color: var(--red);
-      border-color: rgba(248,113,113,0.3);
-    }
-
-    .btn-danger:hover:not(:disabled) {
-      background: rgba(248,113,113,0.2);
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    /* Upload zone */
-    .upload-zone {
-      margin: 0 20px 16px;
-      border: 2px dashed var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--muted);
-      font-size: 0.82rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--accent);
-      background: rgba(124,58,237,0.06);
-      color: var(--glow);
-    }
-
-    .upload-zone span { font-size: 1.8rem; }
-    #fileInput { display: none; }
-
-    /* ── SIDEBAR ── */
-    /* Result Card */
-    .result-card {
-      padding: 24px;
-    }
-
-    .result-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .result-name {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--glow);
-      min-height: 2.4rem;
-      transition: all 0.3s ease;
-    }
-
-    .result-name.idle { color: var(--muted); font-size: 1.1rem; font-weight: 400; }
-
-    .result-emoji {
-      font-size: 3.5rem;
-      line-height: 1;
-      margin: 12px 0;
-      display: block;
-      min-height: 4rem;
-      transition: transform 0.3s ease;
-    }
-
-    .result-confidence {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .confidence-bar-wrap {
-      height: 4px;
-      background: var(--surface);
-      border-radius: 4px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-
-    .confidence-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--green));
-      border-radius: 4px;
-      transition: width 0.4s ease;
-    }
-
-    /* Probability bars */
-    .prob-list {
-      padding: 16px 20px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .prob-row {
-      display: grid;
-      grid-template-columns: 110px 1fr 40px;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .prob-name {
-      font-size: 0.78rem;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .prob-bar-wrap {
-      height: 6px;
-      background: var(--surface);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .prob-bar {
-      height: 100%;
-      width: 0%;
-      border-radius: 4px;
-      transition: width 0.35s ease;
-    }
-
-    .prob-pct {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--muted);
-      text-align: right;
-    }
-
-    .prob-row.top .prob-name { color: var(--glow); font-weight: 600; }
-    .prob-row.top .prob-bar  { background: linear-gradient(90deg, var(--accent), var(--green)); }
-    .prob-row:not(.top) .prob-bar { background: var(--border); }
-
-    /* Status strip */
-    .status-strip {
-      padding: 10px 20px;
-      border-top: 1px solid var(--border);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-strip .pulse {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-    }
-
-    .status-strip.running .pulse {
-      background: var(--green);
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.3; }
-    }
-
-    /* Loading overlay */
-    #loadingOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(10,10,15,0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      gap: 20px;
-    }
-
-    .spinner {
-      width: 48px; height: 48px;
-      border: 3px solid var(--border);
-      border-top-color: var(--glow);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    #loadingOverlay p {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-
-    /* Notification toast */
-    #toast {
-      position: fixed;
-      bottom: 24px; right: 24px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text);
-      z-index: 200;
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all 0.3s ease;
-      max-width: 300px;
-    }
-
-    #toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    #toast.error { border-color: var(--red); color: var(--red); }
-    #toast.success { border-color: var(--green); color: var(--green); }
+#toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
   </style>
-</head>
-<body>
+  </head>
 
-<!-- Loading overlay -->
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-  <p>Cargando modelo de IA...</p>
-</div>
+  <body>
 
-<div class="wrapper">
-  <header>
-    <div class="logo-icon"></div>
-    <div>
-      <h1>Hand Signal <span>AI</span></h1>
-      <p>// DETECTOR DE POSES · TEACHABLE MACHINE · POSENET</p>
-    </div>
-  </header>
+    <div class="grain"></div>
 
-  <div class="grid">
-
-    <!-- ── MAIN PANEL ── -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-
-      <!-- Camera / Image panel -->
-      <div class="panel">
-        <div class="panel-header" id="panelHeader">
-          <span class="dot idle" id="statusDot"></span>
-          <span id="statusText">ESPERANDO INPUT</span>
-        </div>
-
-        <div class="camera-area" id="cameraArea">
-          <div class="idle-state" id="idleState">
-            <div class="idle-icon"></div>
-            <p>Activa la cámara o sube una imagen para detectar poses</p>
-          </div>
-          <video id="video" autoplay muted playsinline></video>
-          <img id="imagePreview" alt="Preview" />
-          <canvas id="canvas"></canvas>
-          <canvas id="skeletonCanvas"></canvas>
-        </div>
-
-        <div class="upload-zone" id="uploadZone">
-          <span></span>
-          <div>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></div>
-          <input type="file" id="fileInput" accept="image/*" />
-        </div>
-
-        <div class="controls">
-          <button class="btn btn-primary" id="btnCamera">
-             Activar Cámara
-          </button>
-          <button class="btn btn-secondary" id="btnAnalyze" disabled>
-             Analizar imagen
-          </button>
-          <button class="btn btn-danger" id="btnStop" disabled>
-            ⏹ Detener
-          </button>
-        </div>
-
-        <div class="status-strip" id="statusStrip">
-          <div class="pulse" id="stripPulse"></div>
-          <span id="stripText">Modelo listo · Selecciona un modo para comenzar</span>
-        </div>
+    <div id="loadingOverlay">
+      <div class="loading-inner">
+        <div class="loader-ring"></div>
+        <p class="loader-text">Cargando modelo...</p>
       </div>
-
     </div>
 
-    <!-- ── SIDEBAR ── -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
+    <div class="wrapper">
 
-      <!-- Result -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="dot warn"></span>
-          RESULTADO
-        </div>
+      <header>
+        <div class="header-left">
+          <div class="logo-mark">
+            <svg viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="18" stroke="currentColor"
+                stroke-width="1.5" />
+            </svg>
+          </div>
 
-        <div class="result-card">
-          <div class="result-label">Pose detectada</div>
-          <div class="result-name idle" id="resultName">Sin detección</div>
-          <span class="result-emoji" id="resultEmoji">—</span>
-          <div class="result-confidence" id="resultConfidence">Confianza: —</div>
-          <div class="confidence-bar-wrap">
-            <div class="confidence-bar" id="confidenceBar"></div>
+          <div class="header-text">
+            <h1>Hand Signal <em>AI</em></h1>
+            <p class="subtitle">Detector de poses · PoseNet · Teachable
+              Machine</p>
           </div>
         </div>
+      </header>
 
-        <div class="prob-list" id="probList">
-          <!-- filled by JS -->
-        </div>
-      </div>
+      <div class="grid">
 
-      <!-- Legend -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="dot idle"></span>
-          POSES RECONOCIDAS
+        <div class="col-main">
+
+          <div class="card">
+
+            <div class="card-label">
+              <span class="label-dot" id="statusDot"></span>
+              <span id="statusText">ESPERANDO INPUT</span>
+            </div>
+
+            <div class="camera-area">
+
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <span class="corner bl"></span>
+              <span class="corner br"></span>
+
+              <div class="idle-state" id="idleState">
+                <div class="idle-icon">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <rect x="8" y="16" width="48" height="36" rx="4"
+                      stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </div>
+                <p>Activa la cámara o sube una imagen para detectar poses</p>
+              </div>
+
+              <video id="video" autoplay muted playsinline></video>
+              <img id="imagePreview" alt="Preview">
+              <canvas id="canvas"></canvas>
+              <canvas id="skeletonCanvas"></canvas>
+
+            </div>
+
+            <label class="upload-zone" id="uploadZone" for="fileInput">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V8M12 8L9 11M12 8L15 11" stroke="currentColor"
+                  stroke-width="1.5" />
+              </svg>
+
+              <span>Arrastra una imagen aquí · <strong>o haz
+                  clic</strong></span>
+              <input type="file" id="fileInput" accept="image/*">
+            </label>
+
+            <div class="controls">
+
+              <button class="btn btn-primary" id="btnCamera">
+                Activar Cámara
+              </button>
+
+              <button class="btn btn-outline" id="btnAnalyze" disabled>
+                Analizar imagen
+              </button>
+
+              <button class="btn btn-ghost" id="btnStop" disabled>
+                Detener
+              </button>
+
+            </div>
+
+            <div class="status-strip" id="statusStrip">
+              <span class="strip-pulse"></span>
+              <span id="stripText">Modelo listo · Selecciona un modo para
+                comenzar</span>
+            </div>
+
+          </div>
         </div>
-        <div style="padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px;">
-          <div id="legendList"></div>
+
+        <div class="col-side">
+
+          <div class="card">
+
+            <div class="card-label">
+              <span class="label-dot dot-warm"></span>
+              RESULTADO
+            </div>
+
+            <div class="result-display">
+
+              <div class="result-emoji" id="resultEmoji">—</div>
+
+              <div class="result-info">
+                <div class="result-tag">Pose detectada</div>
+                <div class="result-name idle" id="resultName">Sin
+                  detección</div>
+                <div class="result-conf" id="resultConfidence">Confianza:
+                  —</div>
+              </div>
+
+            </div>
+
+            <div class="conf-track">
+              <div class="conf-fill" id="confidenceBar"></div>
+            </div>
+
+            <div class="prob-list" id="probList"></div>
+
+          </div>
+
         </div>
+
       </div>
 
     </div>
+
+    <div id="toast"></div>
+
+    <script>
+const MODEL_URL = './model/';
+
+const LABELS = [
+  'Paz',
+  'Mano abierta',
+  'Puño'
+];
+
+const EMOJIS = {
+  'Paz': '✌️',
+  'Mano abierta': '✋',
+  'Puño': '✊',
+};
+
+let model;
+let animFrame = null;
+let mode = 'idle';
+
+const $ = id => document.getElementById(id);
+
+const loadingOverlay = $('loadingOverlay');
+const video = $('video');
+const canvas = $('canvas');
+const skeletonCanvas = $('skeletonCanvas');
+const imagePreview = $('imagePreview');
+const idleState = $('idleState');
+const btnCamera = $('btnCamera');
+const btnAnalyze = $('btnAnalyze');
+const btnStop = $('btnStop');
+const fileInput = $('fileInput');
+const uploadZone = $('uploadZone');
+const resultName = $('resultName');
+const resultEmoji = $('resultEmoji');
+const resultConf = $('resultConfidence');
+const confBar = $('confidenceBar');
+const probList = $('probList');
+const statusDot = $('statusDot');
+const statusText = $('statusText');
+const statusStrip = $('statusStrip');
+const stripText = $('stripText');
+const toast = $('toast');
+
+probList.innerHTML = LABELS.map(l => `
+  <div class="prob-row" id="prob-${l.replace(/\s/g, '_')}">
+    <span class="prob-name">${EMOJIS[l] || ''} ${l}</span>
+    <div class="prob-bar-wrap">
+      <div class="prob-bar" id="bar-${l.replace(/\s/g, '_')}"></div>
+    </div>
+    <span class="prob-pct" id="pct-${l.replace(/\s/g, '_')}">0%</span>
   </div>
-</div>
+`).join('');
 
-<div id="toast"></div>
+async function loadModel() {
+  try {
+    const modelURL = MODEL_URL + 'model.json';
+    const metadataURL = MODEL_URL + 'metadata.json';
 
-<script>
-  // ═══════════════════════════════════════════════
-  // CONFIG
-  // ═══════════════════════════════════════════════
-  const MODEL_URL = './model/';
-  const LABELS = [
-    'Paz', 'Mano abierta', 'Puño'
-  ];
-  const EMOJIS = {
-    'Paz':          '✌️',
-    'Mano abierta': '✋',
-    'Puño':         '✊',
-  };
+    model = await tmPose.load(modelURL, metadataURL);
 
-  // ═══════════════════════════════════════════════
-  // STATE
-  // ═══════════════════════════════════════════════
-  let model, webcam;
-  let animFrame = null;
-  let mode = 'idle'; // idle | camera | image
+    loadingOverlay.style.display = 'none';
 
-  // ═══════════════════════════════════════════════
-  // DOM REFS
-  // ═══════════════════════════════════════════════
-  const $ = id => document.getElementById(id);
-  const loadingOverlay = $('loadingOverlay');
-  const video          = $('video');
-  const canvas         = $('canvas');
-  const skeletonCanvas = $('skeletonCanvas');
-  const imagePreview   = $('imagePreview');
-  const idleState      = $('idleState');
-  const btnCamera      = $('btnCamera');
-  const btnAnalyze     = $('btnAnalyze');
-  const btnStop        = $('btnStop');
-  const fileInput      = $('fileInput');
-  const uploadZone     = $('uploadZone');
-  const resultName     = $('resultName');
-  const resultEmoji    = $('resultEmoji');
-  const resultConf     = $('resultConfidence');
-  const confBar        = $('confidenceBar');
-  const probList       = $('probList');
-  const statusDot      = $('statusDot');
-  const statusText     = $('statusText');
-  const statusStrip    = $('statusStrip');
-  const stripPulse     = $('stripPulse');
-  const stripText      = $('stripText');
-  const toast          = $('toast');
+    showToast('Modelo cargado correctamente ✓');
 
-  // ═══════════════════════════════════════════════
-  // INIT LEGEND
-  // ═══════════════════════════════════════════════
-  const legendList = $('legendList');
-  legendList.innerHTML = LABELS.map(l =>
-    `<div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;">
-      <span style="font-size:1.4rem;width:32px;text-align:center;">${EMOJIS[l] || '🖐️'}</span>
-      <span>${l}</span>
-    </div>`
-  ).join('');
-
-  // Init prob bars
-  probList.innerHTML = LABELS.map(l =>
-    `<div class="prob-row" id="prob-${l.replace(/\s/g,'_')}">
-      <span class="prob-name">${EMOJIS[l] || ''} ${l}</span>
-      <div class="prob-bar-wrap"><div class="prob-bar" id="bar-${l.replace(/\s/g,'_')}"></div></div>
-      <span class="prob-pct" id="pct-${l.replace(/\s/g,'_')}">0%</span>
-    </div>`
-  ).join('');
-
-  // ═══════════════════════════════════════════════
-  // LOAD MODEL
-  // ═══════════════════════════════════════════════
-  async function loadModel() {
-    try {
-      const modelURL    = MODEL_URL + 'model.json';
-      const metadataURL = MODEL_URL + 'metadata.json';
-      model = await tmPose.load(modelURL, metadataURL);
-      loadingOverlay.style.display = 'none';
-      showToast('Modelo cargado correctamente ✓', 'success');
-    } catch (e) {
-      console.error(e);
-      loadingOverlay.querySelector('p').textContent = 'Error cargando modelo. Revisa la consola.';
-      showToast('Error al cargar el modelo', 'error');
-    }
+  } catch (e) {
+    console.error(e);
+    showToast('Error al cargar el modelo');
   }
+}
 
-  // ═══════════════════════════════════════════════
-  // CAMERA MODE
-  // ═══════════════════════════════════════════════
-  btnCamera.addEventListener('click', async () => {
-    if (mode === 'camera') return;
-    stopAll();
-    mode = 'camera';
+btnCamera.addEventListener('click', async () => {
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      video.srcObject = stream;
-      video.style.display = 'block';
-      idleState.style.display = 'none';
-      imagePreview.style.display = 'none';
+  stopAll();
 
-      video.onloadedmetadata = () => {
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        skeletonCanvas.width  = video.videoWidth;
-        skeletonCanvas.height = video.videoHeight;
-        setStatus('active', 'CÁMARA ACTIVA');
-        setStrip(true, 'Detectando en tiempo real...');
-        btnStop.disabled = false;
-        btnCamera.disabled = true;
-        loopCamera();
-      };
-    } catch (e) {
-      showToast('No se pudo acceder a la cámara', 'error');
-      mode = 'idle';
-    }
-  });
+  mode = 'camera';
 
-  async function loopCamera() {
-    if (mode !== 'camera') return;
-    if (video.readyState >= 2) {
-      await predict(video);
-    }
-    animFrame = requestAnimationFrame(loopCamera);
-  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user' }
+    });
 
-  // ═══════════════════════════════════════════════
-  // IMAGE MODE
-  // ═══════════════════════════════════════════════
-  uploadZone.addEventListener('click', () => fileInput.click());
-  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) loadImage(file);
-  });
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files[0]) loadImage(fileInput.files[0]);
-  });
-
-  function loadImage(file) {
-    if (mode === 'camera') stopAll();
-    const url = URL.createObjectURL(file);
-    imagePreview.src = url;
-    imagePreview.style.display = 'block';
+    video.srcObject = stream;
+    video.style.display = 'block';
     idleState.style.display = 'none';
-    video.style.display = 'none';
-    mode = 'image';
-    btnAnalyze.disabled = false;
-    btnStop.disabled = false;
-    setStatus('warn', 'IMAGEN CARGADA');
-    setStrip(false, `Imagen lista → haz clic en "Analizar imagen"`);
-    showToast('Imagen cargada. Presiona Analizar.', 'success');
-
-    // reset result
-    resetResult();
-  }
-
-  btnAnalyze.addEventListener('click', async () => {
-    if (!imagePreview.src || mode !== 'image') return;
-    await predict(imagePreview);
-    setStatus('active', 'ANÁLISIS COMPLETO');
-  });
-
-  // ═══════════════════════════════════════════════
-  // STOP
-  // ═══════════════════════════════════════════════
-  btnStop.addEventListener('click', stopAll);
-
-  function stopAll() {
-    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-    if (video.srcObject) {
-      video.srcObject.getTracks().forEach(t => t.stop());
-      video.srcObject = null;
-    }
-    video.style.display = 'none';
     imagePreview.style.display = 'none';
-    idleState.style.display = 'flex';
-    mode = 'idle';
-    btnCamera.disabled = false;
-    btnAnalyze.disabled = true;
-    btnStop.disabled = true;
-    fileInput.value = '';
 
-    const ctx = skeletonCanvas.getContext('2d');
-    ctx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+    video.onloadedmetadata = () => {
 
-    setStatus('idle', 'ESPERANDO INPUT');
-    setStrip(false, 'Modelo listo · Selecciona un modo para comenzar');
-    resetResult();
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      skeletonCanvas.width = video.videoWidth;
+      skeletonCanvas.height = video.videoHeight;
+
+      btnStop.disabled = false;
+      btnCamera.disabled = true;
+
+      setStatus('active', 'CÁMARA ACTIVA');
+
+      loopCamera();
+    };
+
+  } catch (e) {
+    showToast('No se pudo acceder a la cámara');
+  }
+});
+
+async function loopCamera() {
+
+  if (mode !== 'camera') return;
+
+  if (video.readyState >= 2) {
+    await predict(video);
   }
 
-  // ═══════════════════════════════════════════════
-  // PREDICT
-  // ═══════════════════════════════════════════════
-  async function predict(input) {
-    if (!model) return;
+  animFrame = requestAnimationFrame(loopCamera);
+}
 
-    try {
-      const { pose, posenetOutput } = await model.estimatePose(input);
-      const predictions = await model.predict(posenetOutput);
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadImage(fileInput.files[0]);
+});
 
-      // Draw skeleton
-      if (pose) {
-        const ctx = skeletonCanvas.getContext('2d');
-        ctx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
-        drawSkeleton(ctx, pose, skeletonCanvas.width, skeletonCanvas.height, input);
-      }
+function loadImage(file) {
 
-      // Find top
-      let top = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+  stopAll();
 
-      // Update result card
-      resultName.textContent = top.className;
-      resultName.classList.remove('idle');
-      resultEmoji.textContent = EMOJIS[top.className] || '🖐️';
-      resultEmoji.style.transform = 'scale(1.1)';
-      setTimeout(() => resultEmoji.style.transform = 'scale(1)', 200);
+  const url = URL.createObjectURL(file);
 
-      const pct = Math.round(top.probability * 100);
-      resultConf.textContent = `Confianza: ${pct}%`;
-      confBar.style.width = pct + '%';
+  imagePreview.src = url;
+  imagePreview.style.display = 'block';
 
-      // Update prob bars
-      predictions.forEach(p => {
-        const key = p.className.replace(/\s/g, '_');
-        const row = $('prob-' + key);
-        const bar = $('bar-' + key);
-        const pctEl = $('pct-' + key);
-        const v = Math.round(p.probability * 100);
-        if (bar) bar.style.width = v + '%';
-        if (pctEl) pctEl.textContent = v + '%';
-        if (row) row.classList.toggle('top', p.className === top.className);
-      });
+  idleState.style.display = 'none';
 
-    } catch (e) {
-      console.warn('Predict error:', e);
-    }
+  mode = 'image';
+
+  btnAnalyze.disabled = false;
+  btnStop.disabled = false;
+
+  setStatus('warn', 'IMAGEN CARGADA');
+
+  resetResult();
+}
+
+btnAnalyze.addEventListener('click', async () => {
+
+  if (!imagePreview.src || mode !== 'image') return;
+
+  await predict(imagePreview);
+
+  setStatus('active', 'ANÁLISIS COMPLETO');
+});
+
+btnStop.addEventListener('click', stopAll);
+
+function stopAll() {
+
+  if (animFrame) {
+    cancelAnimationFrame(animFrame);
+    animFrame = null;
   }
 
-  // ═══════════════════════════════════════════════
-  // DRAW SKELETON
-  // ═══════════════════════════════════════════════
-  function drawSkeleton(ctx, pose, cw, ch, source) {
-    // Determine source dimensions
-    let sw, sh;
-    if (source.tagName === 'VIDEO') {
-      sw = source.videoWidth; sh = source.videoHeight;
-    } else {
-      sw = source.naturalWidth || source.width;
-      sh = source.naturalHeight || source.height;
-    }
-
-    const scaleX = cw / sw;
-    const scaleY = ch / sh;
-
-    ctx.save();
-    if (source.tagName === 'VIDEO') {
-      ctx.scale(-1, 1);
-      ctx.translate(-cw, 0);
-    }
-
-    const CONNECTIONS = [
-      [5,6],[5,7],[6,8],[7,9],[8,10],
-      [11,12],[11,13],[12,14],[13,15],[14,16],
-      [5,11],[6,12]
-    ];
-
-    // Lines
-    ctx.strokeStyle = 'rgba(124,58,237,0.6)';
-    ctx.lineWidth = 2;
-    CONNECTIONS.forEach(([a, b]) => {
-      const kpA = pose.keypoints[a];
-      const kpB = pose.keypoints[b];
-      if (kpA.score > 0.3 && kpB.score > 0.3) {
-        ctx.beginPath();
-        ctx.moveTo(kpA.position.x * scaleX, kpA.position.y * scaleY);
-        ctx.lineTo(kpB.position.x * scaleX, kpB.position.y * scaleY);
-        ctx.stroke();
-      }
-    });
-
-    // Points
-    pose.keypoints.forEach(kp => {
-      if (kp.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(kp.position.x * scaleX, kp.position.y * scaleY, 4, 0, 2 * Math.PI);
-        ctx.fillStyle = 'rgba(168,85,247,0.9)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-    });
-
-    ctx.restore();
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
   }
 
-  // ═══════════════════════════════════════════════
-  // UI HELPERS
-  // ═══════════════════════════════════════════════
-  function resetResult() {
-    resultName.textContent = 'Sin detección';
-    resultName.classList.add('idle');
-    resultEmoji.textContent = '—';
-    resultConf.textContent = 'Confianza: —';
-    confBar.style.width = '0%';
-    LABELS.forEach(l => {
-      const key = l.replace(/\s/g, '_');
+  video.style.display = 'none';
+  imagePreview.style.display = 'none';
+
+  idleState.style.display = 'flex';
+
+  mode = 'idle';
+
+  btnCamera.disabled = false;
+  btnAnalyze.disabled = true;
+  btnStop.disabled = true;
+
+  const ctx = skeletonCanvas.getContext('2d');
+
+  ctx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+
+  setStatus('idle', 'ESPERANDO INPUT');
+
+  resetResult();
+}
+
+async function predict(input) {
+
+  if (!model) return;
+
+  try {
+
+    const { pose, posenetOutput } = await model.estimatePose(input);
+
+    const predictions = await model.predict(posenetOutput);
+
+    if (pose) {
+
+      const ctx = skeletonCanvas.getContext('2d');
+
+      ctx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+
+      drawSkeleton(ctx, pose);
+    }
+
+    let top = predictions.reduce((a, b) =>
+      a.probability > b.probability ? a : b
+    );
+
+    resultName.textContent = top.className;
+    resultName.classList.remove('idle');
+
+    resultEmoji.textContent = EMOJIS[top.className] || '🖐️';
+
+    const pct = Math.round(top.probability * 100);
+
+    resultConf.textContent = `Confianza: ${pct}%`;
+
+    confBar.style.width = pct + '%';
+
+    predictions.forEach(p => {
+
+      const key = p.className.replace(/\s/g, '_');
+
+      const row = $('prob-' + key);
       const bar = $('bar-' + key);
       const pctEl = $('pct-' + key);
-      const row = $('prob-' + key);
-      if (bar) bar.style.width = '0%';
-      if (pctEl) pctEl.textContent = '0%';
-      if (row) row.classList.remove('top');
+
+      const v = Math.round(p.probability * 100);
+
+      if (bar) bar.style.width = v + '%';
+      if (pctEl) pctEl.textContent = v + '%';
+
+      if (row) {
+        row.classList.toggle('top', p.className === top.className);
+      }
     });
-  }
 
-  function setStatus(state, text) {
-    statusDot.className = 'dot ' + (state === 'active' ? 'active' : state === 'warn' ? 'warn' : 'idle');
-    statusText.textContent = text;
+  } catch (e) {
+    console.warn(e);
   }
+}
 
-  function setStrip(running, text) {
-    statusStrip.classList.toggle('running', running);
-    stripText.textContent = text;
-  }
+function drawSkeleton(ctx, pose) {
 
-  let toastTimer;
-  function showToast(msg, type = '') {
-    toast.textContent = msg;
-    toast.className = 'show ' + type;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.className = '', 3000);
-  }
+  ctx.strokeStyle = 'rgba(181, 96, 58, 0.55)';
+  ctx.lineWidth = 2;
 
-  // ═══════════════════════════════════════════════
-  // BOOT
-  // ═══════════════════════════════════════════════
-  loadModel();
+  pose.keypoints.forEach(kp => {
+
+    if (kp.score > 0.3) {
+
+      ctx.beginPath();
+
+      ctx.arc(kp.position.x, kp.position.y, 4, 0, 2 * Math.PI);
+
+      ctx.fillStyle = 'rgba(200, 120, 80, 0.85)';
+
+      ctx.fill();
+    }
+  });
+}
+
+function resetResult() {
+
+  resultName.textContent = 'Sin detección';
+  resultName.classList.add('idle');
+
+  resultEmoji.textContent = '—';
+
+  resultConf.textContent = 'Confianza: —';
+
+  confBar.style.width = '0%';
+
+  LABELS.forEach(l => {
+
+    const key = l.replace(/\s/g, '_');
+
+    const bar = $('bar-' + key);
+    const pctEl = $('pct-' + key);
+    const row = $('prob-' + key);
+
+    if (bar) bar.style.width = '0%';
+    if (pctEl) pctEl.textContent = '0%';
+    if (row) row.classList.remove('top');
+  });
+}
+
+function setStatus(state, text) {
+
+  statusDot.className = 'label-dot ' +
+    (state === 'active'
+      ? 'active'
+      : state === 'warn'
+      ? 'warn'
+      : '');
+
+  statusText.textContent = text;
+}
+
+let toastTimer;
+
+function showToast(msg) {
+
+  toast.textContent = msg;
+
+  toast.className = 'show';
+
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    toast.className = '';
+  }, 3000);
+}
+
+loadModel();
 </script>
-</body>
+
+  </body>
 </html>
