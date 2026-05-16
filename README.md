@@ -1,7 +1,8 @@
 #  Hand Signal AI · Detector de Poses
 
-Aplicación web que detecta gestos de manos usando un modelo de **Teachable Machine** (PoseNet) entrenado con TensorFlow.js. Funciona completamente en el navegador — sin servidor backend.
+<img width="1269" height="799" alt="image" src="https://github.com/user-attachments/assets/0b0f4ef8-81ff-436f-9889-90a8a25129f8" />
 
+Aplicación web que detecta gestos de manos usando un modelo de **Teachable Machine** (PoseNet) entrenado con TensorFlow.js. Funciona completamente en el navegador — sin servidor backend.
 ---
 
 ## Poses reconocidas
@@ -40,7 +41,7 @@ Luego abre `http://localhost:8080` en tu navegador.
 
 ---
 
-## 📁 Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 pose-detector/
@@ -72,11 +73,19 @@ pose-detector/
 
 ---
 
-## 🛠️ Personalización
+## Personalización
 
 Para cambiar el modelo, reemplaza los 3 archivos dentro de `model/` con los exportados desde [Teachable Machine](https://teachablemachine.withgoogle.com/) y actualiza el array `LABELS` y `EMOJIS` en `index.html`.
 
 ---
+
+## Contributors
+- Joel Marquez
+- Laura Ortiz
+- Carolina Santiago
+
+## Repositorio 
+https://github.com/Jorelinson/PoseModel.git
 
 ##  Licencia
 
