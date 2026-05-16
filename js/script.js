@@ -42,17 +42,10 @@ const statusStrip     = $('statusStrip');
 const stripPulse      = $('stripPulse');
 const stripText       = $('stripText');
 const toast           = $('toast');
-const headerBadgeDot  = $('headerBadgeDot');
-const headerBadgeText = $('headerBadgeText');
+
 
 // ── INIT LEGEND ──────────────────────────────
-const legendList = $('legendList');
-legendList.innerHTML = LABELS.map(l => `
-  <div class="legend-item">
-    <span class="legend-emoji">${EMOJIS[l] || '🖐️'}</span>
-    <span class="legend-name">${l}</span>
-  </div>
-`).join('');
+
 
 // Init prob bars
 probList.innerHTML = LABELS.map(l => `
@@ -329,11 +322,7 @@ function setStrip(running, text) {
   stripText.textContent = text;
 }
 
-function setBadge(state, text) {
-  headerBadgeDot.className = 'badge-dot '
-    + (state === 'active' ? 'active' : state === 'warn' ? 'warn' : '');
-  headerBadgeText.textContent = text;
-}
+
 
 let toastTimer;
 function showToast(msg, type = '') {
